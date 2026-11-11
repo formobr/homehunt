@@ -1,0 +1,10 @@
+[Unit]
+Description=homehunt: one Zillow rentals poll run
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/homehunt
+ExecStart=%h/projects/homehunt/.venv/bin/homehunt poll
+ExecStartPost=-/bin/bash %h/projects/homehunt/deploy/publish-web.sh
+TimeoutStartSec=1500
+Environment=PATH=%h/.local/bin:@CLAUDE_DIR@:/usr/local/bin:/usr/bin:/bin

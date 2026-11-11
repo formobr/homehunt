@@ -1,0 +1,39 @@
+search:
+  bounds:
+    west: -80.36
+    east: -79.69
+    south: 40.19
+    north: 40.68
+  max_rent: 1500
+  min_beds: 2
+  in_unit_laundry: true
+  region: Allegheny County, PA (Pittsburgh)
+score:
+  cost_best: 1250
+  cost_worst: 1850
+  weights:
+    cost: 50
+    safety: 12
+    parking: 12
+    income: 8
+    type: 7
+    baths: 6
+poll:
+  interval_min: 15
+  max_details_per_run: 12
+  detail_delay_s: [2, 5]
+notify:
+  price_drop_min_usd: 200
+  price_drop_min_pct: 5
+  min_reliability: 60
+  min_value: 60
+  min_score: 55
+ai:
+  triage_model: haiku
+  judge_model: opus
+  max_photos: 8
+  timeout_s: 240
+health:
+  fail_runs_before_alert: 2
+report:
+  timezone: America/New_York

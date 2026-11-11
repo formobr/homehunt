@@ -1,0 +1,9 @@
+[Unit]
+Description=homehunt: daily summary at 09:00 @TIMEZONE@
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 @TIMEZONE@
+Persistent=true
+
+[Install]
+WantedBy=timers.target

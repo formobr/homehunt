@@ -1,0 +1,642 @@
+{
+ "_source": "owner artifact 'Pittsburgh Rental Shortlist' 2026-11-10: crime = AreaVibes (Pittsburgh neighborhoods, FBI 2024) / FBI Crime Data Explorer 2024 (suburbs); *_pct = percentile among 469 candidates (higher = more crime); income = ACS tract median via Esri Living Atlas, averaged per place; null = no/unreliable data",
+ "places": {
+  "Aspinwall": {
+   "violent_per_100k": 72,
+   "property_per_100k": 722,
+   "violent_pct": 10,
+   "property_pct": 12,
+   "median_income": 107000,
+   "income_pct": 79,
+   "points": [
+    [
+     40.49316,
+     -79.90584
+    ]
+   ]
+  },
+  "Baldwin": {
+   "violent_per_100k": 0,
+   "property_per_100k": 738,
+   "violent_pct": 0,
+   "property_pct": 12,
+   "median_income": 89457,
+   "income_pct": 64,
+   "points": [
+    [
+     40.3499,
+     -79.99833
+    ],
+    [
+     40.36162,
+     -79.96302
+    ]
+   ]
+  },
+  "Baldwin Twp": {
+   "violent_per_100k": 0,
+   "property_per_100k": 738,
+   "violent_pct": 0,
+   "property_pct": 12,
+   "median_income": 89931,
+   "income_pct": 65,
+   "points": [
+    [
+     40.38464,
+     -80.01447
+    ]
+   ]
+  },
+  "Banksville": {
+   "violent_per_100k": 126,
+   "property_per_100k": 904,
+   "violent_pct": 22,
+   "property_pct": 18,
+   "median_income": 75808,
+   "income_pct": 51,
+   "points": [
+    [
+     40.41209,
+     -80.03506
+    ],
+    [
+     40.40035,
+     -80.04555
+    ],
+    [
+     40.41282,
+     -80.03644
+    ]
+   ]
+  },
+  "Brookline": {
+   "violent_per_100k": 224,
+   "property_per_100k": 1076,
+   "violent_pct": 32,
+   "property_pct": 21,
+   "median_income": 82537,
+   "income_pct": 58,
+   "points": [
+    [
+     40.39643,
+     -80.00558
+    ],
+    [
+     40.39295,
+     -80.00779
+    ]
+   ]
+  },
+  "Carnegie": {
+   "violent_per_100k": 39,
+   "property_per_100k": 1160,
+   "violent_pct": 5,
+   "property_pct": 32,
+   "median_income": 70569,
+   "income_pct": 43,
+   "points": [
+    [
+     40.40234,
+     -80.08935
+    ],
+    [
+     40.40801,
+     -80.09887
+    ],
+    [
+     40.40516,
+     -80.07794
+    ],
+    [
+     40.41353,
+     -80.09385
+    ],
+    [
+     40.41342,
+     -80.08823
+    ],
+    [
+     40.40774,
+     -80.0934
+    ]
+   ]
+  },
+  "Castle Shannon": {
+   "violent_per_100k": 25,
+   "property_per_100k": 323,
+   "violent_pct": 3,
+   "property_pct": 2,
+   "median_income": 65389,
+   "income_pct": 36,
+   "points": [
+    [
+     40.37026,
+     -80.01636
+    ],
+    [
+     40.36861,
+     -80.03156
+    ],
+    [
+     40.36216,
+     -80.02486
+    ],
+    [
+     40.37403,
+     -80.00904
+    ]
+   ]
+  },
+  "Dormont": {
+   "violent_per_100k": 77,
+   "property_per_100k": 575,
+   "violent_pct": 10,
+   "property_pct": 6,
+   "median_income": 80632,
+   "income_pct": 56,
+   "points": [
+    [
+     40.39502,
+     -80.0384
+    ],
+    [
+     40.39444,
+     -80.03854
+    ],
+    [
+     40.39322,
+     -80.03586
+    ]
+   ]
+  },
+  "Duquesne Heights": {
+   "violent_per_100k": 229,
+   "property_per_100k": 866,
+   "violent_pct": 34,
+   "property_pct": 17,
+   "median_income": 104286,
+   "income_pct": 78,
+   "points": [
+    [
+     40.44034,
+     -80.02683
+    ]
+   ]
+  },
+  "Elizabeth Twp": {
+   "violent_per_100k": null,
+   "property_per_100k": null,
+   "violent_pct": null,
+   "property_pct": null,
+   "median_income": 70957,
+   "income_pct": 45,
+   "points": [
+    [
+     40.31741,
+     -79.81486
+    ]
+   ]
+  },
+  "Forest Hills": {
+   "violent_per_100k": 103,
+   "property_per_100k": 821,
+   "violent_pct": 14,
+   "property_pct": 14,
+   "median_income": 78894,
+   "income_pct": 54,
+   "points": [
+    [
+     40.41924,
+     -79.8487
+    ],
+    [
+     40.41289,
+     -79.84563
+    ],
+    [
+     40.42038,
+     -79.84617
+    ]
+   ]
+  },
+  "Glassport": {
+   "violent_per_100k": 306,
+   "property_per_100k": 1412,
+   "violent_pct": 39,
+   "property_pct": 44,
+   "median_income": 43389,
+   "income_pct": 11,
+   "points": [
+    [
+     40.32719,
+     -79.8902
+    ]
+   ]
+  },
+  "Greenfield": {
+   "violent_per_100k": 176,
+   "property_per_100k": 989,
+   "violent_pct": 25,
+   "property_pct": 19,
+   "median_income": 70069,
+   "income_pct": 44,
+   "points": [
+    [
+     40.4212,
+     -79.94115
+    ]
+   ]
+  },
+  "Hampton Twp": {
+   "violent_per_100k": 11,
+   "property_per_100k": 349,
+   "violent_pct": 1,
+   "property_pct": 3,
+   "median_income": 114375,
+   "income_pct": 84,
+   "points": [
+    [
+     40.607,
+     -79.96797
+    ]
+   ]
+  },
+  "Hays": {
+   "violent_per_100k": 161,
+   "property_per_100k": 1054,
+   "violent_pct": 24,
+   "property_pct": 20,
+   "median_income": 71250,
+   "income_pct": 45,
+   "points": [
+    [
+     40.37804,
+     -79.93811
+    ]
+   ]
+  },
+  "Lincoln": {
+   "violent_per_100k": null,
+   "property_per_100k": null,
+   "violent_pct": null,
+   "property_pct": null,
+   "median_income": 73750,
+   "income_pct": 48,
+   "points": [
+    [
+     40.31233,
+     -79.86093
+    ]
+   ]
+  },
+  "Lincoln Place": {
+   "violent_per_100k": 250,
+   "property_per_100k": 555,
+   "violent_pct": 35,
+   "property_pct": 4,
+   "median_income": 83500,
+   "income_pct": 59,
+   "points": [
+    [
+     40.36854,
+     -79.91675
+    ],
+    [
+     40.36798,
+     -79.90886
+    ]
+   ]
+  },
+  "Millvale": {
+   "violent_per_100k": 187,
+   "property_per_100k": 592,
+   "violent_pct": 28,
+   "property_pct": 9,
+   "median_income": 72778,
+   "income_pct": 47,
+   "points": [
+    [
+     40.48505,
+     -79.97211
+    ]
+   ]
+  },
+  "Mount Lebanon Twp": {
+   "violent_per_100k": 61,
+   "property_per_100k": 623,
+   "violent_pct": 9,
+   "property_pct": 10,
+   "median_income": 130458,
+   "income_pct": 89,
+   "points": [
+    [
+     40.37559,
+     -80.03294
+    ],
+    [
+     40.3758,
+     -80.03258
+    ],
+    [
+     40.38709,
+     -80.04454
+    ]
+   ]
+  },
+  "Mt. Oliver": {
+   "violent_per_100k": 90,
+   "property_per_100k": 694,
+   "violent_pct": 13,
+   "property_pct": 11,
+   "median_income": 57372,
+   "income_pct": 27,
+   "points": [
+    [
+     40.4118,
+     -79.98143
+    ],
+    [
+     40.41148,
+     -79.97893
+    ],
+    [
+     40.41068,
+     -79.979
+    ]
+   ]
+  },
+  "Munhall": {
+   "violent_per_100k": 117,
+   "property_per_100k": 1375,
+   "violent_pct": 17,
+   "property_pct": 37,
+   "median_income": 55728,
+   "income_pct": 24,
+   "points": [
+    [
+     40.38705,
+     -79.90791
+    ],
+    [
+     40.39918,
+     -79.89781
+    ]
+   ]
+  },
+  "O'Hara Twp": {
+   "violent_per_100k": 23,
+   "property_per_100k": 203,
+   "violent_pct": 2,
+   "property_pct": 1,
+   "median_income": 119595,
+   "income_pct": 85,
+   "points": [
+    [
+     40.49747,
+     -79.855
+    ],
+    [
+     40.50209,
+     -79.85107
+    ],
+    [
+     40.49753,
+     -79.93593
+    ]
+   ]
+  },
+  "Penn Hills Twp": {
+   "violent_per_100k": 378,
+   "property_per_100k": 1079,
+   "violent_pct": 47,
+   "property_pct": 27,
+   "median_income": 70748,
+   "income_pct": 43,
+   "points": [
+    [
+     40.45098,
+     -79.83286
+    ],
+    [
+     40.49796,
+     -79.8423
+    ],
+    [
+     40.46982,
+     -79.8417
+    ],
+    [
+     40.49494,
+     -79.81715
+    ],
+    [
+     40.47136,
+     -79.86043
+    ],
+    [
+     40.46746,
+     -79.83801
+    ],
+    [
+     40.47625,
+     -79.87133
+    ],
+    [
+     40.45254,
+     -79.84319
+    ]
+   ]
+  },
+  "Robinson Twp": {
+   "violent_per_100k": 71,
+   "property_per_100k": 1935,
+   "violent_pct": 9,
+   "property_pct": 53,
+   "median_income": 87821,
+   "income_pct": 63,
+   "points": [
+    [
+     40.50607,
+     -80.14156
+    ]
+   ]
+  },
+  "Scott Twp": {
+   "violent_per_100k": 81,
+   "property_per_100k": 899,
+   "violent_pct": 11,
+   "property_pct": 17,
+   "median_income": 69700,
+   "income_pct": 42,
+   "points": [
+    [
+     40.38904,
+     -80.08102
+    ],
+    [
+     40.39939,
+     -80.08919
+    ]
+   ]
+  },
+  "Shaler Twp": {
+   "violent_per_100k": 52,
+   "property_per_100k": 563,
+   "violent_pct": 7,
+   "property_pct": 5,
+   "median_income": 74405,
+   "income_pct": 49,
+   "points": [
+    [
+     40.50434,
+     -79.93798
+    ],
+    [
+     40.49244,
+     -79.96744
+    ],
+    [
+     40.48624,
+     -79.96824
+    ],
+    [
+     40.50814,
+     -79.95329
+    ],
+    [
+     40.48529,
+     -79.96789
+    ]
+   ]
+  },
+  "Squirrel Hill North": {
+   "violent_per_100k": 27,
+   "property_per_100k": 718,
+   "violent_pct": 4,
+   "property_pct": 11,
+   "median_income": 129464,
+   "income_pct": 88,
+   "points": [
+    [
+     40.44279,
+     -79.9156
+    ],
+    [
+     40.44269,
+     -79.9157
+    ]
+   ]
+  },
+  "Stanton Heights": {
+   "violent_per_100k": 109,
+   "property_per_100k": 751,
+   "violent_pct": 15,
+   "property_pct": 13,
+   "median_income": 78884,
+   "income_pct": 54,
+   "points": [
+    [
+     40.47898,
+     -79.94101
+    ],
+    [
+     40.48616,
+     -79.94286
+    ]
+   ]
+  },
+  "Swissvale": {
+   "violent_per_100k": null,
+   "property_per_100k": null,
+   "violent_pct": null,
+   "property_pct": null,
+   "median_income": 60455,
+   "income_pct": 31,
+   "points": [
+    [
+     40.42472,
+     -79.87746
+    ]
+   ]
+  },
+  "Turtle Creek": {
+   "violent_per_100k": null,
+   "property_per_100k": null,
+   "violent_pct": null,
+   "property_pct": null,
+   "median_income": 45997,
+   "income_pct": 13,
+   "points": [
+    [
+     40.40855,
+     -79.81735
+    ]
+   ]
+  },
+  "West Deer Twp": {
+   "violent_per_100k": null,
+   "property_per_100k": null,
+   "violent_pct": null,
+   "property_pct": null,
+   "median_income": 89667,
+   "income_pct": 65,
+   "points": [
+    [
+     40.59955,
+     -79.87199
+    ]
+   ]
+  },
+  "Westwood": {
+   "violent_per_100k": 182,
+   "property_per_100k": 591,
+   "violent_pct": 28,
+   "property_pct": 8,
+   "median_income": 72058,
+   "income_pct": 46,
+   "points": [
+    [
+     40.43665,
+     -80.05408
+    ]
+   ]
+  },
+  "White Oak": {
+   "violent_per_100k": 14,
+   "property_per_100k": 179,
+   "violent_pct": 1,
+   "property_pct": 1,
+   "median_income": 58075,
+   "income_pct": 28,
+   "points": [
+    [
+     40.33584,
+     -79.81757
+    ],
+    [
+     40.35662,
+     -79.81416
+    ],
+    [
+     40.35557,
+     -79.8189
+    ]
+   ]
+  },
+  "Whitehall": {
+   "violent_per_100k": 90,
+   "property_per_100k": 518,
+   "violent_pct": 13,
+   "property_pct": 3,
+   "median_income": 99286,
+   "income_pct": 74,
+   "points": [
+    [
+     40.36883,
+     -79.99148
+    ]
+   ]
+  }
+ },
+ "_match": "a listing takes the place of its nearest known point if within 2.5 km, else safety/income are unknown"
+}

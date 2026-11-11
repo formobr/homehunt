@@ -120,7 +120,7 @@ cp .env.example .env
 | `score.weights` | see table above | `{cost, safety, parking, income, type, baths}` |
 | `poll.interval_min` | 15 | timer interval (re-run `deploy/install.sh` after changing it) |
 | `poll.max_details_per_run` | 12 | listings opened and rated per run (keeps a run under the 25 min service timeout) |
-| `notify.min_score` | 55 | score bar |
+| `notify.min_score` | 0 | score bar; 0 = off, the AI fit and value decide (the score still orders the journal) |
 | `notify.min_reliability` / `min_value` | 60 / 60 | AI fit / value bar |
 | `notify.price_drop_min_usd` / `_pct` | 200 / 5 | what counts as a rent drop |
 | `ai.triage_model` / `judge_model` | `haiku` / `opus` | Claude models for the two stages |

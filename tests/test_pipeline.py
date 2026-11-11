@@ -23,10 +23,10 @@ def verdict(kind="worth_seeing", urgent=False, fit=80, value=80):
     )
 
 
-def listing(sid, price=3000, address=None):
+def listing(sid, price=3000, address=None, source="zillow"):
     address = address or f"{sid} Oak St"
     return Listing(
-        source="zillow", source_id=sid, url=f"https://zillow/{sid}", title=address,
+        source=source, source_id=sid, url=f"https://{source}/{sid}", title=address,
         price=price, beds=2, address=address, city="Pittsburgh", zipcode="15219",
         laundry=["In Unit"], has_garage=False,
     )
@@ -40,12 +40,16 @@ class FakeFetcher:
     """Each poll consumes one scripted batch; detailed listings are only
     returned for ids the pipeline said it already knows nothing about."""
 
-    def __init__(self):
+    def __init__(self, idle=None):
         self.script = []
         self.known_seen = []
+        self.idle = idle  # what a poll returns when nothing is scripted
 
     def push(self, cards=(), listings=(), blocked=False):
         self.script.append(Batch(list(cards), list(listings), blocked))
+
+    def push_error(self, exc):
+        self.script.append(exc)
 
 
 class FakeNotifier:
@@ -85,13 +89,18 @@ class FakeAnalyzer:
 @pytest.fixture
 def env(tmp_path, monkeypatch):
     store = Store(tmp_path / "t.db")
-    fetcher = FakeFetcher()
+    fetcher = FakeFetcher()  # zillow
+    # facebook stays quiet (one already-seen-looking card) unless a test scripts it
+    fb = FakeFetcher(idle=Batch([Card("fb-idle", "https://fb/idle", 3000)]))
 
     def fake_fetch(f, settings, known, sleep):
         f.known_seen.append(set(known))
-        return f.script.pop(0)
+        step = f.script.pop(0) if f.script or f.idle is None else f.idle
+        if isinstance(step, Exception):
+            raise step
+        return step
 
-    monkeypatch.setattr(pipeline, "fetch_new", fake_fetch)
+    monkeypatch.setattr(pipeline, "FETCH_NEW", {"zillow": fake_fetch, "fb": fake_fetch})
     e = type("Env", (), {})()
     e.totals, e.fails = {}, {}  # source_id -> total / hard_fail reason
 
@@ -105,11 +114,11 @@ def env(tmp_path, monkeypatch):
         )
 
     monkeypatch.setattr(pipeline, "compute_score", fake_score)
-    e.store, e.fetcher = store, fetcher
+    e.store, e.fetcher, e.fb = store, fetcher, fb
     e.analyzer, e.notifier = FakeAnalyzer(store), FakeNotifier()
     e.settings = Settings()
     e.poll = lambda: pipeline.poll(
-        e.settings, store, fetcher, e.analyzer, e.notifier,
+        e.settings, store, {"zillow": fetcher, "fb": fb}, e.analyzer, e.notifier,
         now=lambda: NOW, sleep=lambda s: None,
     )
     return e
@@ -125,7 +134,7 @@ def first_run(env):
 
 def test_new_cards_one_notified_two_silent(env):
     s = first_run(env)
-    assert (s.cards, s.new, s.analyzed, s.notified) == (3, 3, 3, 1)
+    assert (s.cards, s.new, s.analyzed, s.notified) == (3 + 1, 3, 3, 1)  # +1: fb's idle card
     assert [c[0] for c in env.notifier.cards] == ["1"]
     assert env.store.pending_analysis() == []
 
@@ -332,7 +341,7 @@ def test_blocked_runs_alert_exactly_once_per_streak(env):
     blocked()
     blocked()
     assert len(env.notifier.texts) == 2
-    runs = env.store.recent_runs(1)
+    runs = env.store.recent_runs(1, "zillow")
     assert runs[0]["note"] == "blocked" and runs[0]["errors"] == 1
 
 
@@ -363,3 +372,102 @@ def test_repost_with_price_drop_is_analyzed_and_alerted(env):
     assert env.analyzer.calls[-1] == ("9", "price_drop")
     assert env.notifier.cards[-1] == ("9", 2600, "price_drop", 3000)
     assert env.store.pending_analysis() == []
+
+
+# ------------------------------------------------------------ two sources
+
+
+def fb_card(sid, price=1400):
+    return Card(source_id=sid, url=f"https://fb/{sid}", price=price)
+
+
+def fb_listing(sid, price=1400):
+    return listing(sid, price=price, source="fb")
+
+
+def test_both_sources_are_polled_and_each_gets_its_own_run_row(env):
+    env.analyzer.verdicts["f1"] = verdict("worth_seeing")
+    env.fetcher.push([card("1")], [listing("1")])
+    env.fb.push([fb_card("f1")], [fb_listing("f1")])
+    s = env.poll()
+    assert (s.cards, s.new, s.analyzed) == (2, 2, 2)
+    assert [c[0] for c in env.notifier.cards] == ["f1"]
+    runs = env.store.db.execute("SELECT source, cards, new FROM runs ORDER BY id").fetchall()
+    assert [(r["source"], r["cards"], r["new"]) for r in runs] == [("zillow", 1, 1), ("fb", 1, 1)]
+
+
+def test_blocked_zillow_does_not_stop_fb_listings(env):
+    env.analyzer.verdicts["f1"] = verdict("worth_seeing")
+    env.fetcher.push(blocked=True)
+    env.fb.push([fb_card("f1")], [fb_listing("f1")])
+    s = env.poll()
+    assert s.blocked
+    assert [c[0] for c in env.notifier.cards] == ["f1"]
+
+
+def test_blocked_fb_does_not_stop_zillow_listings(env):
+    env.analyzer.verdicts["1"] = verdict("worth_seeing")
+    env.fetcher.push([card("1")], [listing("1")])
+    env.fb.push(blocked=True)
+    s = env.poll()
+    assert s.blocked
+    assert [c[0] for c in env.notifier.cards] == ["1"]
+
+
+def test_crashing_source_does_not_stop_the_other_and_is_recorded(env):
+    env.analyzer.verdicts["1"] = verdict("worth_seeing")
+    env.fetcher.push([card("1")], [listing("1")])
+    env.fb.push_error(RuntimeError("boom"))
+    s = env.poll()
+    assert [c[0] for c in env.notifier.cards] == ["1"]
+    assert s.errors == 1
+    last = env.store.recent_runs(1, "fb")[0]
+    assert last["note"] == "failed" and last["finished_at"]
+
+
+def test_each_source_gets_only_its_own_known_ids(env):
+    env.fetcher.push([card("1")], [listing("1")])
+    env.fb.push([fb_card("f1")], [fb_listing("f1")])
+    env.poll()
+    env.fetcher.push([card("1")])
+    env.fb.push([fb_card("f1")])
+    env.poll()
+    assert env.fetcher.known_seen[1] == {"1"}
+    assert env.fb.known_seen[1] == {"f1"}
+
+
+def test_fb_price_drop_is_looked_up_in_fb_rows(env):
+    env.fetcher.push([card("1")], [listing("1")])
+    env.fb.push([fb_card("f1", 1500)], [fb_listing("f1", 1500)])
+    env.poll()
+    env.analyzer.calls.clear()
+    env.fetcher.push([card("1")])
+    env.fb.push([fb_card("f1", 1100)])
+    env.poll()
+    assert env.analyzer.calls == [("f1", "price_drop")]
+
+
+def test_blocked_source_alerts_name_the_source_and_only_that_source(env):
+    for _ in range(2):
+        env.fetcher.push([card("1")])
+        env.fb.push(blocked=True)
+        env.poll()
+    assert len(env.notifier.texts) == 1
+    assert "Facebook" in env.notifier.texts[0] and "Zillow" not in env.notifier.texts[0]
+    for _ in range(2):
+        env.fetcher.push(blocked=True)
+        env.fb.push([fb_card("f1")])
+        env.poll()
+    assert len(env.notifier.texts) == 2
+    assert "Zillow" in env.notifier.texts[1]
+
+
+def test_pending_queue_is_shared_and_capped_across_sources(env):
+    from dataclasses import replace
+
+    env.settings = replace(env.settings, poll=replace(env.settings.poll, max_details_per_run=2))
+    env.fetcher.push([card(s) for s in "12"], [listing(s) for s in "12"])
+    env.fb.push([fb_card(s) for s in ("f1", "f2")], [fb_listing(s) for s in ("f1", "f2")])
+    env.poll()
+    assert [c[0] for c in env.analyzer.calls] == ["1", "2"]
+    assert len(env.store.pending_analysis()) == 2

@@ -16,13 +16,18 @@ from .models import Listing
 from .notify import NotifyError
 from .score import Score, load_places
 from .score import score as compute_score
-from .sources.zillow import fetch_new
+from .sources import fb, zillow
 from .store import Store
 
 log = logging.getLogger(__name__)
 
-SOURCE = "zillow"
-HEALTH_ALERT = "homehunt: Zillow не отдаёт объявления {n} запусков подряд"
+SOURCES = ("zillow", "fb")
+FETCH_NEW: dict[str, Callable[..., Any]] = {
+    "zillow": zillow.fetch_new,
+    "fb": fb.fetch_new,
+}
+SOURCE_NAMES = {"zillow": "Zillow", "fb": "Facebook"}
+HEALTH_ALERT = "homehunt: {source} не отдаёт объявления {n} запусков подряд"
 
 
 def utcnow() -> datetime:
@@ -114,33 +119,18 @@ def _notify_ok(v: Verdict, s: Score, settings: Settings) -> bool:
 def poll(
     settings: Settings,
     store: Store,
-    fetcher: Any,
+    fetchers: dict[str, Any],
     analyzer: Callable[[Listing, str], Verdict],
     notifier: Any,
     now: Callable[[], datetime] = utcnow,
     sleep: Callable[[float], None] = time.sleep,
 ) -> RunSummary:
-    """``analyzer(listing, reason) -> Verdict`` must mark the listing analyzed
+    """Poll every source in turn (``fetchers`` maps source -> fetcher), then
+    analyze the shared pending queue.
+
+    ``analyzer(listing, reason) -> Verdict`` must mark the listing analyzed
     on success and pending_analysis on AnalyzeError (as analyze.analyze does)."""
-    run_id = store.start_run(SOURCE)
-    summary = RunSummary(run_id)
-    known = {
-        r["source_id"]
-        for r in store.db.execute(
-            "SELECT source_id FROM listings WHERE source=?", (SOURCE,)
-        )
-    }
-    batch = fetch_new(fetcher, settings, known, sleep)
-    summary.cards = len(batch.cards)
-    summary.errors = len(batch.errors)
-
-    if batch.blocked:
-        summary.blocked = True
-        summary.errors += 1
-        store.finish_run(run_id, summary.cards, 0, summary.errors, "blocked")
-        _health(settings, store, notifier, summary)
-        return summary
-
+    summary = RunSummary(0)
     skip: set[int] = set()  # failed this run; retried next run
 
     places = load_places()
@@ -176,64 +166,102 @@ def poll(
         store.record_notification(lid, mid)
         summary.notified += 1
 
-    # 1. price drops on known listings
-    for card in batch.cards:
-        if card.source_id not in known:
-            continue
-        row = store.db.execute(
-            "SELECT id, price, status FROM listings WHERE source=? AND source_id=?",
-            (SOURCE, card.source_id),
-        ).fetchone()
-        if row is None or row["status"] != "analyzed":
-            continue
-        if not _is_drop(row["price"], card.price, settings):
-            continue
-        lid = row["id"]
-        listing, detected, _ = _load(store, lid)
-        old = listing.price
-        listing.price = card.price
-        sc, failed = rate(lid, listing, "price_drop")
-        if failed:
-            store.upsert_listing(listing, now())  # save the price: the drop is handled
-            continue
+    def run_source(source: str) -> None:
+        run_id = store.start_run(source)
+        if not summary.run_id:
+            summary.run_id = run_id
+        errors = 0
         try:
-            verdict = analyzer(listing, "price_drop")
-        except AnalyzeError as exc:
-            log.warning("re-analysis failed for %s: %s", lid, exc)
-            store.set_status(lid, "analyzed")  # price not saved: drop is seen again
-            summary.errors += 1
-            continue
-        store.upsert_listing(listing, now())
-        summary.analyzed += 1
-        notify(lid, listing, verdict, detected, "price_drop", sc, old)
+            known = {
+                r["source_id"]
+                for r in store.db.execute(
+                    "SELECT source_id FROM listings WHERE source=?", (source,)
+                )
+            }
+            batch = FETCH_NEW[source](fetchers[source], settings, known, sleep)
+            summary.cards += len(batch.cards)
+            errors = len(batch.errors)
+            if batch.blocked:
+                summary.blocked = True
+                errors += 1
+                store.finish_run(run_id, len(batch.cards), 0, errors, "blocked")
+                summary.errors += errors
+                return
+            new = process(source, batch, known)
+        except Exception as exc:  # noqa: BLE001 - one source failing must not stop the other
+            log.warning("source %s failed: %r", source, exc)
+            summary.errors += errors + 1
+            store.finish_run(run_id, 0, 0, errors + 1, "failed")
+            return
+        summary.errors += errors
+        store.finish_run(run_id, len(batch.cards), new, errors, None)
 
-    # 2. new detailed listings
-    for item in batch.listings:
-        res = store.upsert_listing(item, now())
-        if not res.is_new:
-            continue
-        summary.new += 1
-        if res.repost_of is None:
-            continue
-        old = _price_of(store, res.repost_of)
-        if not _is_drop(old, item.price, settings):
-            store.set_status(res.listing_id, "analyzed")
-            continue
-        sc, failed = rate(res.listing_id, item, "price_drop")
-        if failed:
-            continue
-        try:
-            verdict = analyzer(item, "price_drop")
-        except AnalyzeError as exc:
-            log.warning("repost analysis failed for %s: %s", res.listing_id, exc)
-            summary.errors += 1
-            skip.add(res.listing_id)
-            continue
-        summary.analyzed += 1
-        _, detected, _ = _load(store, res.listing_id)
-        notify(res.listing_id, item, verdict, detected, "price_drop", sc, old)
+    def process(source: str, batch: Any, known: set[str]) -> int:
+        new = 0
+        # 1. price drops on known listings
+        for card in batch.cards:
+            if card.source_id not in known:
+                continue
+            row = store.db.execute(
+                "SELECT id, price, status FROM listings WHERE source=? AND source_id=?",
+                (source, card.source_id),
+            ).fetchone()
+            if row is None or row["status"] != "analyzed":
+                continue
+            if not _is_drop(row["price"], card.price, settings):
+                continue
+            lid = row["id"]
+            listing, detected, _ = _load(store, lid)
+            old = listing.price
+            listing.price = card.price
+            sc, failed = rate(lid, listing, "price_drop")
+            if failed:
+                store.upsert_listing(listing, now())  # save the price: the drop is handled
+                continue
+            try:
+                verdict = analyzer(listing, "price_drop")
+            except AnalyzeError as exc:
+                log.warning("re-analysis failed for %s: %s", lid, exc)
+                store.set_status(lid, "analyzed")  # price not saved: drop is seen again
+                summary.errors += 1
+                continue
+            store.upsert_listing(listing, now())
+            summary.analyzed += 1
+            notify(lid, listing, verdict, detected, "price_drop", sc, old)
 
-    # 3. pending analyses, oldest first, capped
+        # 2. new detailed listings
+        for item in batch.listings:
+            res = store.upsert_listing(item, now())
+            if not res.is_new:
+                continue
+            new += 1
+            summary.new += 1
+            if res.repost_of is None:
+                continue
+            old = _price_of(store, res.repost_of)
+            if not _is_drop(old, item.price, settings):
+                store.set_status(res.listing_id, "analyzed")
+                continue
+            sc, failed = rate(res.listing_id, item, "price_drop")
+            if failed:
+                continue
+            try:
+                verdict = analyzer(item, "price_drop")
+            except AnalyzeError as exc:
+                log.warning("repost analysis failed for %s: %s", res.listing_id, exc)
+                summary.errors += 1
+                skip.add(res.listing_id)
+                continue
+            summary.analyzed += 1
+            _, detected, _ = _load(store, res.listing_id)
+            notify(res.listing_id, item, verdict, detected, "price_drop", sc, old)
+        return new
+
+    for source in SOURCES:
+        run_source(source)
+        _health(settings, store, notifier, summary, source)
+
+    # 3. pending analyses of every source, oldest first, capped
     todo = [i for i in store.pending_analysis() if i not in skip]
     for lid in todo[: settings.poll.max_details_per_run]:
         listing, detected, _ = _load(store, lid)
@@ -249,24 +277,24 @@ def poll(
         summary.analyzed += 1
         notify(lid, listing, verdict, detected, "new", sc)
 
-    store.finish_run(run_id, summary.cards, summary.new, summary.errors, None)
-    _health(settings, store, notifier, summary)
     return summary
 
 
 def _bad(run: dict) -> bool:
-    return run.get("note") == "blocked" or run.get("cards") == 0
+    return run.get("note") in ("blocked", "failed") or run.get("cards") == 0
 
 
-def _health(settings: Settings, store: Store, notifier: Any, summary: RunSummary) -> None:
+def _health(
+    settings: Settings, store: Store, notifier: Any, summary: RunSummary, source: str
+) -> None:
     n = settings.health.fail_runs_before_alert
-    runs = store.recent_runs(n + 1)
+    runs = store.recent_runs(n + 1, source)
     if len(runs) < n or not all(_bad(r) for r in runs[:n]):
         return
     if len(runs) > n and _bad(runs[n]):
         return
     try:
-        notifier.send_text(HEALTH_ALERT.format(n=n))
+        notifier.send_text(HEALTH_ALERT.format(source=SOURCE_NAMES[source], n=n))
         summary.alerted = True
     except NotifyError as exc:
         log.warning("health alert failed: %s", exc)

@@ -134,6 +134,19 @@ def test_schema_strict_and_prompt_contents(env):
     assert "highlights" in low and "отдельный вход" in p
 
 
+def test_prompt_names_the_source_and_omits_days_on_zillow_when_unknown(env):
+    from dataclasses import replace
+
+    _, l = env
+    fb = build_prompt(replace(l, source="fb"), [], "triage")
+    assert "Source: Facebook Marketplace" in fb
+    assert "Days on Zillow" not in fb
+    z = build_prompt(replace(l, source="zillow", days_on_zillow=3), [], "triage")
+    assert "Source: Zillow" in z and "Days on Zillow: 3" in z
+    assert "Summarize this rental listing from" in fb
+    assert "off the listing site" in fb and "off Zillow" not in fb
+
+
 def test_prompt_names_only_the_configured_region(env):
     store, l = env
     r = FakeRunner([canned("skip")])

@@ -1,8 +1,8 @@
 # homehunt
 
-Rental alerts from Zillow, scored by cost and checked by Claude.
+Rental alerts from Zillow and Facebook Marketplace, scored by cost and checked by Claude.
 
-Every 15 minutes homehunt reads the newest Zillow rentals in your area **without logging in**, scores each new
+Every 15 minutes homehunt reads the newest Zillow and Facebook Marketplace rentals in your area **without logging in**, scores each new
 one with a transparent formula where the full monthly cost weighs the most, asks Claude to check the text and
 photos (laundry, parking, condition, **rental-scam signs**), and sends only the strong ones to your Telegram.
 Everything is kept in a local SQLite journal and a self-contained HTML page.
@@ -10,7 +10,7 @@ Everything is kept in a local SQLite journal and a self-contained HTML page.
 - **No Anthropic API key.** Claude runs through the [Claude Code](https://claude.com/claude-code) CLI
   (`claude -p`) on your own Claude subscription: `haiku` triages every listing, `opus` (with web search for
   comparable rents) re-checks the candidates.
-- **No Zillow account.** Public search and listing pages are fetched with plain HTTP at a polite pace.
+- **No Zillow or Facebook account.** Public search and listing pages are fetched with plain HTTP at a polite pace.
 - **No database server.** One SQLite file, `data/homehunt.db`, created on the first run.
 
 Defaults: Allegheny County, PA (Pittsburgh); house or townhouse; 2+ bedrooms; rent ≤ $1500; washer and dryer in
@@ -18,7 +18,7 @@ the unit. All of it is configurable.
 
 ## What you get in Telegram
 
-One short card per listing that passes, with the photo and two buttons, «Zillow» and «Карта» (Google Maps):
+One short card per listing that passes, with the photo and two buttons, «Zillow» (or «Facebook») and «Карта» (Google Maps):
 
 ```
 1236 Prospect Ave APT 2, Pittsburgh 15234
@@ -112,6 +112,7 @@ cp .env.example .env
 |---|---|---|
 | `search.bounds` | Allegheny County | `{west, east, south, north}` map rectangle |
 | `search.region` | Allegheny County, PA (Pittsburgh) | area name given to the AI (prompts); set it to your area along with `search.bounds` |
+| `search.fb_city` | `pittsburgh` | Facebook Marketplace city slug (`facebook.com/marketplace/<slug>/propertyrentals`); listings outside `search.bounds` are filtered out |
 | `search.max_rent` | 1500 | rent limit, USD/month |
 | `search.min_beds` | 2 | bedrooms |
 | `search.in_unit_laundry` | `true` | require washer/dryer in the unit |
@@ -192,7 +193,8 @@ Leave `HOMEHUNT_WEB_SSH` empty (the default) and the page is only written locall
 
 - Each listing that passes the filters costs one `haiku` call; candidates add one `opus` call. That is billed
   against your Claude subscription's usage limits, not money per call.
-- Zillow may change its page format or start showing a captcha; homehunt then sends a «returns nothing» alert.
+- Zillow or Facebook may change a page format or start showing a captcha or login wall; homehunt then sends a
+  «returns nothing» alert naming that source. The other source keeps working.
 
 ## Development
 

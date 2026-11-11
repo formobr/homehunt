@@ -112,6 +112,16 @@ def _hard_fail(listing: Listing, settings: Settings) -> str | None:
         return f"rent {listing.price} > max {s.max_rent}"
     if listing.beds is not None and listing.beds < s.min_beds:
         return f"beds {listing.beds} < min {s.min_beds}"
+    b = s.bounds
+    if (
+        listing.lat is not None
+        and listing.lon is not None
+        and not (
+            b["south"] <= listing.lat <= b["north"]
+            and b["west"] <= listing.lon <= b["east"]
+        )
+    ):
+        return "outside search.bounds"  # FB's city radius reaches other states
     if (
         s.in_unit_laundry
         and listing.laundry

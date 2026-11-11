@@ -11,7 +11,7 @@ def _poll() -> int:
     from .config import load_settings
     from .notify import TelegramNotifier, telegram_creds
     from .pipeline import poll
-    from .sources.zillow import Fetcher
+    from .sources import fb, zillow
     from .store import Store
 
     settings = load_settings()
@@ -24,7 +24,7 @@ def _poll() -> int:
         summary = poll(
             settings,
             store,
-            Fetcher(),
+            {"zillow": zillow.Fetcher(), "fb": fb.Fetcher()},
             lambda listing, reason: analyze(listing, store, runner, http, settings, reason),
             TelegramNotifier(token, chat, tg, tz=settings.report.tz),
         )

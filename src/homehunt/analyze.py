@@ -22,6 +22,7 @@ from .store import Store
 
 log = logging.getLogger(__name__)
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
+_SOURCE_LABELS = {"zillow": "Zillow", "fb": "Facebook Marketplace"}
 
 
 class AnalyzeError(Exception):
@@ -83,6 +84,7 @@ def build_prompt(
         return None if v is None else ("yes" if v else "no")
 
     fields = [
+        ("Source", _SOURCE_LABELS.get(listing.source, listing.source)),
         ("Title", listing.title),
         ("Rent (USD/month)", listing.price),
         ("Bedrooms", listing.beds),
@@ -100,8 +102,9 @@ def build_prompt(
         ("Pets allowed", yes_no(listing.pets_allowed)),
         ("Security deposit (USD)", listing.deposit),
         ("Available from", listing.available_from),
-        ("Days on Zillow", listing.days_on_zillow),
     ]
+    if listing.days_on_zillow is not None:
+        fields.append(("Days on Zillow", listing.days_on_zillow))
     lines = [f"{k}: {v if v not in (None, '') else 'unknown'}" for k, v in fields]
     parts = [
         _prompt_file("analyze.md", region),

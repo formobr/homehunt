@@ -70,6 +70,7 @@ def collect(store, now: datetime, tz: tzinfo | None = None) -> dict:
         listings.append(
             {
                 "id": r["id"],
+                "source": r["source"],
                 "url": r["url"],
                 "photo": photos[0] if photos and isinstance(photos[0], str) else None,
                 "title": r["title"],
@@ -322,7 +323,7 @@ function card(l) {
   }
   if (l.notified) b.appendChild(el("span", "✈ отправлено", "badge sent"));
   var p = el("div");
-  var a = el("a", "Открыть на Zillow");
+  var a = el("a", l.source === "fb" ? "Открыть на Facebook" : "Открыть на Zillow");
   a.href = /^https?:\\/\\//.test(l.url) ? l.url : "#";
   a.target = "_blank";
   a.rel = "noopener noreferrer";

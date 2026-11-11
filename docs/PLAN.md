@@ -56,3 +56,4 @@ Notify: verdict worth_seeing AND not scam AND score ≥ `notify.min_score`.
   full cost, score breakdown, laundry/parking, scam flags. The journal's «best» sort orders by the score total and «cheap»
   by the full monthly cost (owner 2026-11-11: cost matters most), so the list reads in the score's order.
 - **H5 deploy** — timers, optional publish over ssh (basic auth on the web server).
+- **H12 fb-source** — Facebook Marketplace rentals as a second source (owner 2026-11-11).

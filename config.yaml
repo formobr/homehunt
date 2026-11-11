@@ -8,6 +8,7 @@ search:
   min_beds: 2
   in_unit_laundry: true
   region: Allegheny County, PA (Pittsburgh)
+  fb_city: pittsburgh
 score:
   cost_best: 1250
   cost_worst: 1850

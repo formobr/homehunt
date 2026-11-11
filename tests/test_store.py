@@ -104,6 +104,24 @@ def test_runs(store):
     assert runs[0]["cards"] == 3 and runs[0]["note"] == "ok"
 
 
+def test_recent_runs_filters_by_source(store):
+    for source, cards in (("zillow", 1), ("fb", 2), ("zillow", 3)):
+        store.finish_run(store.start_run(source), cards=cards, new=0, errors=0)
+    assert [r["cards"] for r in store.recent_runs(5)] == [3, 2, 1]
+    assert [r["cards"] for r in store.recent_runs(5, "zillow")] == [3, 1]
+    assert [r["cards"] for r in store.recent_runs(1, "fb")] == [2]
+    assert store.recent_runs(5, "other") == []
+
+
+def test_fb_city_setting_defaults_and_env_override(tmp_path):
+    p = tmp_path / "c.yaml"
+    p.write_text("search: {}\n")
+    assert load_settings(p, env={}).search.fb_city == "pittsburgh"
+    assert load_settings(
+        p, env={"HOMEHUNT__SEARCH__FB_CITY": "austin"}
+    ).search.fb_city == "austin"
+
+
 def test_unknown_config_key_refused(tmp_path):
     p = tmp_path / "c.yaml"
     p.write_text("search:\n  max_rentt: 1\n")

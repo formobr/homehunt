@@ -283,10 +283,16 @@ class Store:
                 (_utcnow_iso(), cards, new, errors, note, run_id),
             )
 
-    def recent_runs(self, n: int = 10) -> list[dict]:
-        rows = self.db.execute(
-            "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (n,)
-        ).fetchall()
+    def recent_runs(self, n: int = 10, source: str | None = None) -> list[dict]:
+        if source is None:
+            rows = self.db.execute(
+                "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (n,)
+            ).fetchall()
+        else:
+            rows = self.db.execute(
+                "SELECT * FROM runs WHERE source=? ORDER BY id DESC LIMIT ?",
+                (source, n),
+            ).fetchall()
         return [dict(r) for r in rows]
 
     def similar_prices(self, beds: int, zipcode: str) -> list[int]:

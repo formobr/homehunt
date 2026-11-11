@@ -23,6 +23,7 @@ class SearchSettings:
     min_beds: int = 2
     in_unit_laundry: bool = True
     region: str = "Allegheny County, PA (Pittsburgh)"
+    fb_city: str = "pittsburgh"  # Facebook Marketplace city slug
 
 
 @dataclass(frozen=True)

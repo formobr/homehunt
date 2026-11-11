@@ -114,6 +114,16 @@ def test_page_carries_score_and_hard_fail(tmp_path):
     assert "Балл " in html and "Разбор балла" in html and "Отфильтровано: " in html
 
 
+def test_page_labels_the_link_by_source(tmp_path):
+    store = build(tmp_path)
+    store.db.execute("UPDATE listings SET source='fb' WHERE id=2")
+    store.db.commit()
+    html = render_page(store, NOW)
+    by_id = {x["id"]: x for x in data_of(html)["listings"]}
+    assert (by_id[1]["source"], by_id[2]["source"]) == ("zillow", "fb")
+    assert "Открыть на Facebook" in html and "Открыть на Zillow" in html
+
+
 def test_last_run_skips_unfinished_run(tmp_path):
     store = Store(tmp_path / "t.db")
     store.start_run("fb")

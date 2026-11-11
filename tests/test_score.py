@@ -117,6 +117,26 @@ def test_hard_fails():
     assert score(mk(laundry=["Shared"]), relaxed, PLACES).hard_fail is None
 
 
+def test_outside_search_bounds_is_a_hard_fail():
+    # Weirton, WV: inside FB's city radius, west of the default bounds
+    weirton = mk(lat=40.4187, lon=-80.5895)
+    assert score(weirton, S, PLACES).hard_fail == "outside search.bounds"
+    assert score(mk(lat=40.0, lon=-79.99), S, PLACES).hard_fail == "outside search.bounds"
+    assert score(mk(lat=40.7, lon=-79.99), S, PLACES).hard_fail == "outside search.bounds"
+    assert score(mk(lat=40.44, lon=-79.5), S, PLACES).hard_fail == "outside search.bounds"
+    assert score(mk(lat=40.44, lon=-79.99), S, PLACES).hard_fail is None
+
+
+def test_missing_coordinates_do_not_fail_the_bounds_check():
+    assert score(mk(lat=None, lon=None), S, PLACES).hard_fail is None
+
+
+def test_bounds_come_from_settings():
+    wide = replace(S, search=replace(S.search, bounds={
+        "west": -81.0, "east": -79.0, "south": 40.0, "north": 41.0}))
+    assert score(mk(lat=40.4187, lon=-80.5895), wide, PLACES).hard_fail is None
+
+
 def test_weights_from_settings_change_total():
     base = score(mk(price=1400), S, PLACES).total
     heavy = replace(S, score=ScoreSettings(weights={"cost": 1, "safety": 12, "parking": 12,

@@ -36,6 +36,32 @@ def run_cli(tmp_path, capsys, *argv):
     return code, capsys.readouterr().out
 
 
+def test_poll_builds_both_source_fetchers(tmp_path, monkeypatch, capsys):
+    from pathlib import Path
+
+    from homehunt import pipeline
+    from homehunt.sources import fb, zillow
+
+    root = Path(__file__).resolve().parent.parent
+    (tmp_path / "config.yaml").write_text((root / "config.yaml").read_text(encoding="utf-8"))
+    (tmp_path / "data").mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "2")
+    seen = {}
+
+    def fake_poll(settings, store, fetchers, analyzer, notifier, **kw):
+        seen["fetchers"] = fetchers
+        return pipeline.RunSummary(1)
+
+    monkeypatch.setattr(pipeline, "poll", fake_poll)
+    assert cli.main(["poll"], now=NOW) == 0
+    assert set(seen["fetchers"]) == {"zillow", "fb"}
+    assert isinstance(seen["fetchers"]["zillow"], zillow.Fetcher)
+    assert isinstance(seen["fetchers"]["fb"], fb.Fetcher)
+    assert "cards=0" in capsys.readouterr().out
+
+
 def test_percentile_nearest_rank_hand_computed():
     vals = [float(m * 60) for m in range(1, 11)]  # 1..10 minutes
     assert stats.percentile(vals, 50) == 300.0

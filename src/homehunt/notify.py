@@ -146,7 +146,7 @@ def _parking_ru(listing: Listing) -> str | None:
 def facts(
     listing: Listing, laundry: str = "unknown", parking: str = "unknown"
 ) -> list[tuple[str, str]]:
-    """Russian facts about the home: Zillow fields first, the verdict only as fallback."""
+    """Russian facts about the home: listing fields first, the verdict only as fallback."""
     out: list[tuple[str, str]] = []
     if listing.home_type:
         out.append(("Тип", HOME_TYPE_RU.get(listing.home_type, "другое")))
@@ -332,7 +332,10 @@ class TelegramNotifier:
         keyboard = {
             "inline_keyboard": [
                 [
-                    {"text": "Zillow", "url": listing.url},
+                    {
+                        "text": "Facebook" if listing.source == "fb" else "Zillow",
+                        "url": listing.url,
+                    },
                     {"text": "Карта", "url": map_url(listing)},
                 ]
             ]

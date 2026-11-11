@@ -169,6 +169,16 @@ def test_card_shows_cost_score_and_scam():
     assert "риск мошенничества" not in low
 
 
+def test_card_button_is_named_after_the_source():
+    for source, label in (("fb", "Facebook"), ("zillow", "Zillow")):
+        seen, handler = recorder()
+        TelegramNotifier(TOKEN, "42", client_for(handler)).send_card(
+            make_listing(source=source), make_verdict(), DETECTED, "new"
+        )
+        kb = seen[0][1]["reply_markup"]["inline_keyboard"][0]
+        assert [b["text"] for b in kb] == [label, "Карта"]
+
+
 def test_facts_come_from_zillow_first():
     unknown = make_verdict(laundry="unknown", parking="unknown")
     yard = make_listing(
